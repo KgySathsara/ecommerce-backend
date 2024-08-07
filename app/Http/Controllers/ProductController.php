@@ -19,12 +19,12 @@ class ProductController extends Controller
         return response()->json(['product' => $product]);
     }
 
-        public function store(Request $request)
+    public function store(Request $request)
     {
         $request->validate([
             'name' => 'required|string|max:255',
             'description' => 'required|string',
-            'image' => 'required|image|mimes:jpeg,png,jpg,gif,svg|max:2048'
+            'image' => 'required|image|mimes:jpeg,png,jpg,gif,svg|max:20000' 
         ]);
 
         $imagePath = $request->file('image')->store('images', 'public');
@@ -43,17 +43,20 @@ class ProductController extends Controller
         $request->validate([
             'name' => 'required|string|max:255',
             'description' => 'required|string',
-            'image' => 'nullable|image|mimes:jpeg,png,jpg,gif,svg|max:2048'
+            'image' => 'nullable|image|mimes:jpeg,png,jpg,gif,svg|max:2048' // 'nullable' means image is optional during update
         ]);
 
         if ($request->hasFile('image')) {
+            // Delete the old image if it exists
             if ($product->image_path) {
                 Storage::delete('public/' . $product->image_path);
             }
+            // Store the new image
             $imagePath = $request->file('image')->store('images', 'public');
             $product->image_path = $imagePath;
         }
 
+        // Update product with new values
         $product->update($request->only('name', 'description'));
 
         return response()->json(['product' => $product]);
@@ -61,11 +64,13 @@ class ProductController extends Controller
 
     public function destroy(Product $product)
     {
+        // Delete the image from storage if it exists
         if ($product->image_path) {
-            Storage::delete($product->image_path);
+            Storage::delete('public/' . $product->image_path);
         }
+        // Delete the product record
         $product->delete();
+        
         return response()->json(null, 204);
     }
 }
-
