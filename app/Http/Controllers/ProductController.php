@@ -28,8 +28,8 @@ class ProductController extends Controller
         $product->image_url = url('images/' . $product->image);
 
         return response()->json(['product' => $product]);
-    }   
-    
+    }
+
     public function store(Request $request)
     {
         $request->validate([
@@ -54,6 +54,7 @@ class ProductController extends Controller
         return response()->json(['product' => $product], 201);
     }
 
+
     public function update(Request $request, Product $product)
     {
         $request->validate([
@@ -65,8 +66,15 @@ class ProductController extends Controller
         ]);
 
         if ($request->hasFile('upload')) {
-            $imageData = file_get_contents($request->file('upload')->getRealPath());
-            $product->image = $imageData;
+            // Delete the old image
+            if ($product->image) {
+                Storage::delete(public_path('images/' . $product->image));
+            }
+
+            // Save the new image
+            $imageName = time().'.'.$request->file('upload')->extension();
+            $request->file('upload')->move(public_path('images'), $imageName);
+            $product->image = $imageName;
         }
 
         $product->update($request->only('name', 'description', 'price', 'quantity'));
@@ -77,15 +85,19 @@ class ProductController extends Controller
     public function destroy(Product $product)
     {
         try {
+            // Delete the image file if exists
             if ($product->image) {
-                Storage::delete($product->image);
+                Storage::delete(public_path('images/' . $product->image));
             }
+
             $product->delete();
 
             return response()->json(['message' => 'Product deleted successfully']);
         } catch (\Exception $e) {
+            \Log::error('Error deleting product: ' . $e->getMessage());
             return response()->json(['error' => 'There was an error deleting the product'], 500);
         }
     }
+
 
 }
