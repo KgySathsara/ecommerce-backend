@@ -31,5 +31,7 @@ Route::get('/contact-messages', [ContactMessageController::class, 'index']);
 Route::delete('/contact-messages/{id}', [ContactMessageController::class, 'destroy']);
 
 //gallery
-Route::post('/gallery', [GalleryController::class, 'store']);
 Route::get('/gallery', [GalleryController::class, 'index']);
+Route::post('/gallery', [GalleryController::class, 'store']);
+Route::put('/gallery/{id}', [GalleryController::class, 'update']);
+Route::delete('/gallery/{id}', [GalleryController::class, 'destroy']);
