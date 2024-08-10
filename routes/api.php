@@ -1,10 +1,10 @@
 <?php
 
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\RegisterController;
 use App\Http\Controllers\LoginController;
 use App\Http\Controllers\ProductController;
-use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\ContactMessageController;
 use App\Http\Controllers\GalleryController;
 
@@ -19,7 +19,11 @@ Route::get('/user', [RegisterController::class, 'show']);
 Route::post('/login', [LoginController::class, 'login']);
 
 //products
-Route::apiResource('products', ProductController::class);
+Route::get('/products', [ProductController::class, 'index']);
+Route::get('/products/{product}', [ProductController::class, 'show']);
+Route::post('/products', [ProductController::class, 'store']);
+Route::put('/products/{product}', [ProductController::class, 'update']);
+Route::delete('/products/{product}', [ProductController::class, 'destroy']);
 
 //contactus
 Route::post('/contact-us', [ContactMessageController::class, 'store']);
@@ -28,3 +32,4 @@ Route::delete('/contact-messages/{id}', [ContactMessageController::class, 'destr
 
 //gallery
 Route::post('/gallery', [GalleryController::class, 'store']);
+Route::get('/gallery', [GalleryController::class, 'index']);
