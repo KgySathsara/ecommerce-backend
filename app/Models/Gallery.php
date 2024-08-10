@@ -6,10 +6,6 @@ use Illuminate\Database\Eloquent\Model;
 
 class Gallery extends Model
 {
-    protected $fillable = ['name', 'images'];
+    protected $fillable = ['name', 'image', 'price', 'quantity'];
 
-    protected $casts = [
-        'images' => 'array',
-    ];
 }
-
