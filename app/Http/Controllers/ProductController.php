@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\Product;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Facades\Log;
 
 class ProductController extends Controller
 {
@@ -82,22 +83,30 @@ class ProductController extends Controller
         return response()->json(['product' => $product]);
     }
 
-    public function destroy(Product $product)
+    public function destroy($id)
     {
         try {
-            // Delete the image file if exists
+            $product = Product::findOrFail($id);
+
+            // Delete associated image
             if ($product->image) {
-                Storage::delete(public_path('images/' . $product->image));
+                $imagePath = public_path('images/' . $product->image);
+                if (file_exists($imagePath)) {
+                    unlink($imagePath);
+                } else {
+                    Log::warning('Image file not found: ' . $imagePath);
+                }
             }
 
             $product->delete();
 
-            return response()->json(['message' => 'Product deleted successfully']);
+            return response()->json(['message' => 'Product deleted successfully'], 200);
+        } catch (ModelNotFoundException $e) {
+            Log::error('Product not found: ' . $id);
+            return response()->json(['error' => 'Product not found'], 404);
         } catch (\Exception $e) {
-            \Log::error('Error deleting product: ' . $e->getMessage());
+            Log::error('Error deleting product: ' . $e->getMessage());
             return response()->json(['error' => 'There was an error deleting the product'], 500);
         }
     }
-
-
 }
