@@ -6,9 +6,16 @@ use App\Models\Product;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Http\JsonResponse;
 
 class ProductController extends Controller
 {
+    public function getProductCount(): JsonResponse
+    {
+        $productCount = Product::count();
+        return response()->json(['count' => $productCount]);
+    }
+
     public function index()
     {
         try {

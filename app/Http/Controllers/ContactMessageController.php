@@ -5,9 +5,17 @@ namespace App\Http\Controllers;
 use App\Models\ContactMessage;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Response;
+use Illuminate\Support\Facades\Log;
+use Illuminate\Http\JsonResponse;
 
 class ContactMessageController extends Controller
 {
+    public function getMessageCount(): JsonResponse
+    {
+        $messageCount = ContactMessage::count();
+        return response()->json(['count' => $messageCount]);
+    }
+
     public function store(Request $request)
     {
         $validatedData = $request->validate([

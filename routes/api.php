@@ -7,7 +7,10 @@ use App\Http\Controllers\LoginController;
 use App\Http\Controllers\ProductController;
 use App\Http\Controllers\ContactMessageController;
 use App\Http\Controllers\GalleryController;
-use App\Http\Controllers\OrdersController;
+
+use App\Http\Controllers\DashboardController;
+use App\Http\Controllers\OrderController;
+
 
 Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
     return $request->user();
@@ -25,11 +28,13 @@ Route::post('/products', [ProductController::class, 'store']);
 Route::get('/products/{id}', [ProductController::class, 'show']);
 Route::put('/products/{id}', [ProductController::class, 'update']);
 Route::delete('/products/{id}', [ProductController::class, 'destroy']);
+Route::get('/product-count', [ProductController::class, 'getProductCount']);
 
 //contactus
 Route::post('/contact-us', [ContactMessageController::class, 'store']);
 Route::get('/contact-messages', [ContactMessageController::class, 'index']);
 Route::delete('/contact-messages/{id}', [ContactMessageController::class, 'destroy']);
+Route::get('/message-count', [ContactMessageController::class, 'getMessageCount']);
 
 //gallery
 Route::get('/gallery', [GalleryController::class, 'index']);
@@ -41,4 +46,5 @@ Route::delete('/gallery/{id}', [GalleryController::class, 'destroy']);
 Route::post('/orders', [OrdersController::class, 'store']);
 Route::get('/orders', [OrdersController::class, 'index']);
 Route::delete('/orders/{id}', [OrdersController::class, 'destroy']);
+
 
