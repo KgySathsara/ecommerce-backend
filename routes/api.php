@@ -7,8 +7,10 @@ use App\Http\Controllers\LoginController;
 use App\Http\Controllers\ProductController;
 use App\Http\Controllers\ContactMessageController;
 use App\Http\Controllers\GalleryController;
+
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\OrderController;
+
 
 Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
     return $request->user();
@@ -38,4 +40,10 @@ Route::get('/gallery', [GalleryController::class, 'index']);
 Route::post('/gallery', [GalleryController::class, 'store']);
 Route::put('/gallery/{id}', [GalleryController::class, 'update']);
 Route::delete('/gallery/{id}', [GalleryController::class, 'destroy']);
-Route::get('/gallery-count', [GalleryController::class, 'getGalleryCount']);
+
+//Orders
+Route::post('/orders', [OrdersController::class, 'store']);
+Route::get('/orders', [OrdersController::class, 'index']);
+Route::delete('/orders/{id}', [OrdersController::class, 'destroy']);
+
+
