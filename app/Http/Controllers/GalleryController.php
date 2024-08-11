@@ -4,7 +4,6 @@ namespace App\Http\Controllers;
 
 use App\Models\Gallery;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Validator;
 
 class GalleryController extends Controller
@@ -18,12 +17,12 @@ class GalleryController extends Controller
             'quantity' => 'required|integer',
         ]);
 
-        $imageName = time().'.'.$request->file('upload')->extension();
-        $request->file('upload')->move(public_path('images'), $imageName);
+        // Convert image to binary data
+        $imageBinary = file_get_contents($request->file('upload'));
 
         $gallery = Gallery::create([
             'name' => $request->name,
-            'image' => $imageName,
+            'image' => $imageBinary,
             'price' => $request->price,
             'quantity' => $request->quantity,
         ]);
@@ -34,14 +33,15 @@ class GalleryController extends Controller
     public function index()
     {
         $galleries = Gallery::all()->map(function ($gallery) {
-            $gallery->image = url('images/' . $gallery->image); // Return the full URL to the image
-
+            // Determine the MIME type and base64 encode the image
+            $mimeType = finfo_buffer(finfo_open(), $gallery->image, FILEINFO_MIME_TYPE);
+            $gallery->image = 'data:' . $mimeType . ';base64,' . base64_encode($gallery->image);
             return $gallery;
         });
-
+    
         return response()->json(['galleries' => $galleries]);
     }
-
+    
     public function update(Request $request, $id)
     {
         $validatedData = $request->validate([
@@ -50,26 +50,29 @@ class GalleryController extends Controller
             'quantity' => 'required|integer',
             'upload' => 'nullable|image|mimes:jpeg,png,jpg,gif,svg|max:2048',
         ]);
-
+    
         try {
             $gallery = Gallery::findOrFail($id);
             $gallery->name = $validatedData['name'];
             $gallery->price = $validatedData['price'];
             $gallery->quantity = $validatedData['quantity'];
-
+    
             if ($request->hasFile('upload')) {
-                $imageName = time().'.'.$request->file('upload')->extension();
-                $request->file('upload')->move(public_path('images'), $imageName);
-                $gallery->image = $imageName;
+                $imageBinary = file_get_contents($request->file('upload'));
+                $gallery->image = $imageBinary;
             }
-
+    
             $gallery->save();
-
+    
+            // Determine the MIME type and base64 encode the image before sending the response
+            $mimeType = finfo_buffer(finfo_open(), $gallery->image, FILEINFO_MIME_TYPE);
+            $gallery->image = 'data:' . $mimeType . ';base64,' . base64_encode($gallery->image);
+    
             return response()->json(['gallery' => $gallery], 200);
         } catch (\Exception $e) {
             return response()->json(['message' => 'An error occurred while updating the image.', 'error' => $e->getMessage()], 500);
         }
-    }
+    }    
 
     public function destroy($id)
     {
@@ -77,5 +80,4 @@ class GalleryController extends Controller
         $gallery->delete();
         return response()->json(['message' => 'Gallery deleted successfully']);
     }
-
 }
