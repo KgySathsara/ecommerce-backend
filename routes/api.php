@@ -9,7 +9,7 @@ use App\Http\Controllers\ContactMessageController;
 use App\Http\Controllers\GalleryController;
 
 use App\Http\Controllers\DashboardController;
-use App\Http\Controllers\OrderController;
+use App\Http\Controllers\OrdersController;
 
 
 Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
