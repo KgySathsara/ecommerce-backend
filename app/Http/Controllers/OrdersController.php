@@ -29,4 +29,18 @@ class OrdersController extends Controller
         $orders = Allorders::all();
         return response()->json($orders);
     }
+
+    public function destroy($id)
+    {
+        $order = Allorders::find($id);
+
+        if (!$order) {
+            return response()->json(['message' => 'Order not found'], 404);
+        }
+
+        $order->delete();
+
+        return response()->json(['message' => 'Order deleted successfully'], 200);
+    }
+
 }

@@ -40,3 +40,5 @@ Route::delete('/gallery/{id}', [GalleryController::class, 'destroy']);
 //Orders
 Route::post('/orders', [OrdersController::class, 'store']);
 Route::get('/orders', [OrdersController::class, 'index']);
+Route::delete('/orders/{id}', [OrdersController::class, 'destroy']);
+
