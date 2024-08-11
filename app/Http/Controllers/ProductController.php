@@ -19,67 +19,99 @@ class ProductController extends Controller
     public function index()
     {
         try {
-            $products = Product::all(['name', 'description', 'price', 'quantity', 'image']);
+            $products = Product::all(['id', 'name', 'description', 'price', 'quantity', 'image']);
             foreach ($products as $product) {
                 $product->image_url = url('images/' . $product->image);
             }
             return response()->json(['products' => $products]);
         } catch (\Exception $e) {
-            \Log::error('Error fetching products: ' . $e->getMessage());
-            return response()->json(['error' => 'Error fetching products'], 500);
+            Log::error('Error fetching products: ' . $e->getMessage());
+            return response()->json(['error' => 'There was an error fetching the products'], 500);
         }
     }
 
     public function store(Request $request)
     {
-        $request->validate([
+        $validatedData = $request->validate([
             'name' => 'required|string|max:255',
             'description' => 'required|string',
             'price' => 'required|numeric',
             'quantity' => 'required|integer',
-            'upload' => 'required|image|mimes:jpeg,png,jpg,gif,svg|max:2048',
+            'upload' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
         ]);
 
-        $imageName = time().'.'.$request->file('upload')->extension();
-        $request->file('upload')->move(public_path('images'), $imageName);
+        try {
+            $product = new Product();
+            $product->name = $validatedData['name'];
+            $product->description = $validatedData['description'];
+            $product->price = $validatedData['price'];
+            $product->quantity = $validatedData['quantity'];
 
-        $product = Product::create([
-            'name' => $request->name,
-            'description' => $request->description,
-            'price' => $request->price,
-            'quantity' => $request->quantity,
-            'image' => $imageName,
-        ]);
-
-        return response()->json(['product' => $product], 201);
-    }
-
-
-    public function update(Request $request, Product $product)
-    {
-        $request->validate([
-            'name' => 'required|string|max:255',
-            'description' => 'required|string',
-            'price' => 'required|numeric',
-            'quantity' => 'required|integer',
-            'upload' => 'nullable|image|mimes:jpeg,png,jpg,gif,svg|max:2048',
-        ]);
-
-        if ($request->hasFile('upload')) {
-            // Delete the old image
-            if ($product->image) {
-                Storage::delete(public_path('images/' . $product->image));
+            if ($request->hasFile('upload')) {
+                $file = $request->file('upload');
+                $filename = time() . '.' . $file->getClientOriginalExtension();
+                $file->move(public_path('images'), $filename);
+                $product->image = $filename;
             }
 
-            // Save the new image
-            $imageName = time().'.'.$request->file('upload')->extension();
-            $request->file('upload')->move(public_path('images'), $imageName);
-            $product->image = $imageName;
+            $product->save();
+            return response()->json(['product' => $product], 201);
+        } catch (\Exception $e) {
+            Log::error('Error storing product: ' . $e->getMessage());
+            return response()->json(['error' => 'There was an error storing the product'], 500);
         }
+    }
 
-        $product->update($request->only('name', 'description', 'price', 'quantity'));
+    public function show($id)
+    {
+        try {
+            $product = Product::findOrFail($id);
+            $product->image_url = url('images/' . $product->image);
+            return response()->json(['product' => $product]);
+        } catch (\Exception $e) {
+            Log::error('Product not found: ' . $e->getMessage());
+            return response()->json(['error' => 'Product not found'], 404);
+        }
+    }
 
-        return response()->json(['product' => $product]);
+    public function update(Request $request, $id)
+    {
+        $validatedData = $request->validate([
+            'name' => 'required|string|max:255',
+            'description' => 'required|string',
+            'price' => 'required|numeric',
+            'quantity' => 'required|integer',
+            'upload' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
+        ]);
+
+        try {
+            $product = Product::findOrFail($id);
+            $product->name = $validatedData['name'];
+            $product->description = $validatedData['description'];
+            $product->price = $validatedData['price'];
+            $product->quantity = $validatedData['quantity'];
+
+            if ($request->hasFile('upload')) {
+                if ($product->image) {
+                    $oldImagePath = public_path('images/' . $product->image);
+                    if (file_exists($oldImagePath)) {
+                        unlink($oldImagePath);
+                    }
+                }
+
+                $file = $request->file('upload');
+                $filename = time() . '.' . $file->getClientOriginalExtension();
+                $file->move(public_path('images'), $filename);
+                $product->image = $filename;
+            }
+
+            $product->save();
+            $product->image_url = url('images/' . $product->image);
+            return response()->json(['product' => $product]);
+        } catch (\Exception $e) {
+            Log::error('Error updating product: ' . $e->getMessage());
+            return response()->json(['error' => 'There was an error updating the product'], 500);
+        }
     }
 
     public function destroy($id)
@@ -87,7 +119,6 @@ class ProductController extends Controller
         try {
             $product = Product::findOrFail($id);
 
-            // Delete associated image
             if ($product->image) {
                 $imagePath = public_path('images/' . $product->image);
                 if (file_exists($imagePath)) {
@@ -98,11 +129,7 @@ class ProductController extends Controller
             }
 
             $product->delete();
-
             return response()->json(['message' => 'Product deleted successfully'], 200);
-        } catch (ModelNotFoundException $e) {
-            Log::error('Product not found: ' . $id);
-            return response()->json(['error' => 'Product not found'], 404);
         } catch (\Exception $e) {
             Log::error('Error deleting product: ' . $e->getMessage());
             return response()->json(['error' => 'There was an error deleting the product'], 500);
