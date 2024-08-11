@@ -6,9 +6,16 @@ use App\Models\Product;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Http\JsonResponse;
 
 class ProductController extends Controller
 {
+    public function getProductCount(): JsonResponse
+    {
+        $productCount = Product::count();
+        return response()->json(['count' => $productCount]);
+    }
+
     public function index()
     {
         try {
@@ -21,14 +28,6 @@ class ProductController extends Controller
             \Log::error('Error fetching products: ' . $e->getMessage());
             return response()->json(['error' => 'Error fetching products'], 500);
         }
-    }
-
-    public function show($id)
-    {
-        $product = Product::findOrFail($id);
-        $product->image_url = url('images/' . $product->image);
-
-        return response()->json(['product' => $product]);
     }
 
     public function store(Request $request)

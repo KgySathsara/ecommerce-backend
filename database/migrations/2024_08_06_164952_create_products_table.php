@@ -13,7 +13,7 @@ public function up()
         $table->id();
         $table->string('name');
         $table->text('description');
-        $table->binary('image')->nullable();
+        $table->binary('image');
         $table->decimal('price', 8, 2);
         $table->integer('quantity');
         $table->timestamps();
